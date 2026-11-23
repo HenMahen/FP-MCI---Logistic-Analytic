@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sql-lint:
+    name: SQL lint and dbt parse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: DustiniaDelixia_Groceria/requirements-dbt.txt
+
+      - name: Install dbt and SQLFluff
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r DustiniaDelixia_Groceria/requirements-dbt.txt "sqlfluff>=3.3,<4"
+
+      - name: Lint dbt SQL
+        working-directory: DustiniaDelixia_Groceria/dbt_dustinia
+        run: sqlfluff lint models tests
+
+      - name: Validate dbt project graph
+        working-directory: DustiniaDelixia_Groceria/dbt_dustinia
+        run: dbt parse --profiles-dir . --no-version-check
+
+      - name: Python syntax check
+        run: |
+          python -m py_compile \
+            DustiniaDelixia_Groceria/dags/operational_analyst_dag.py \
+            DustiniaDelixia_Groceria/delivery_map.py \
+            DustiniaDelixia_Groceria/download_fact.py \
+            dashboard/app.py
+
+  dbt-build-test:
+    name: dbt build and data quality tests
+    runs-on: ubuntu-latest
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:24.8
+        ports:
+          - 8123:8123
+        env:
+          CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CLICKHOUSE_HOST: localhost
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      DBT_PROFILES_DIR: ${{ github.workspace }}/DustiniaDelixia_Groceria/dbt_dustinia
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: DustiniaDelixia_Groceria/requirements-dbt.txt
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r DustiniaDelixia_Groceria/requirements-dbt.txt
+
+      - name: Create Bronze tables and load CI fixture
+        run: |
+          python - <<'PY'
+          import pathlib
+          import clickhouse_connect
+
+          client = clickhouse_connect.get_client(host="localhost", port=8123)
+
+          for sql_file in [
+              "DustiniaDelixia_Groceria/sql/create_raw_tables.sql",
+              "DustiniaDelixia_Groceria/dbt_dustinia/scripts/ci_seed.sql",
+          ]:
+              statements = []
+              current = []
+              for line in pathlib.Path(sql_file).read_text().splitlines():
+                  stripped = line.strip()
+                  if stripped.startswith("--"):
+                      continue
+                  current.append(line)
+                  if stripped.endswith(";"):
+                      statements.append("\n".join(current).rstrip().rstrip(";"))
+                      current = []
+              for statement in statements:
+                  client.command(statement)
+              print(f"Applied {len(statements)} statements from {sql_file}")
+          PY
+
+      - name: dbt build (models and data quality tests)
+        working-directory: DustiniaDelixia_Groceria/dbt_dustinia
+        run: dbt build --profiles-dir . --target dev --no-version-check

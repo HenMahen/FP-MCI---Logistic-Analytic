@@ -13,21 +13,27 @@ Mode data:
   - 'clickhouse' : baca dari ClickHouse 
 """
 
+import os
+import sys
+
 import pandas as pd
 import numpy as np
 import folium
-from folium.plugins import HeatMap, MarkerCluster
-import os
-import webbrowser
+from folium.plugins import HeatMap
+
+# Unicode-safe console output on Windows (cp1252 cannot encode emoji).
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 # KONFIGURASI
+BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
 DATA_MODE = 'csv'  # ganti ke 'clickhouse' jika ClickHouse sudah running
-DATA_DIR  = './include/data/'   # path ke folder CSV
-OUTPUT    = 'delivery_map.html' # nama file output
+DATA_DIR  = os.path.join(BASE_DIR, 'include', 'data') + os.sep
+OUTPUT    = os.path.join(BASE_DIR, 'delivery_map.html')
 
-# Koordinat pusat Indonesia
-MAP_CENTER = [-2.5, 118.0]
-MAP_ZOOM   = 5
+# Pusat peta: Brazil (negara asal dataset Olist)
+MAP_CENTER = [-14.2350, -51.9253]
+MAP_ZOOM   = 4
 
 # LOAD DATA
 print("Loading data...")
@@ -165,16 +171,16 @@ print(f"✅ City-level data: {len(city_df):,} titik koordinat")
 # HELPER: Warna berdasarkan delay rate
 def delay_color(rate):
     if rate < 5:    return '#1a9641'   # hijau tua  — sangat baik
-    elif rate < 15: return '#a6d96a'   # hijau muda — baik
-    elif rate < 25: return '#ffffbf'   # kuning     — perlu perhatian
-    elif rate < 40: return '#fdae61'   # oranye     — bermasalah
+    elif rate < 10: return '#a6d96a'   # hijau muda — baik
+    elif rate < 15: return '#ffffbf'   # kuning     — perlu perhatian
+    elif rate < 20: return '#fdae61'   # oranye     — bermasalah
     else:           return '#d7191c'   # merah      — kritis
 
 def delay_label(rate):
     if rate < 5:    return 'Sangat Baik'
-    elif rate < 15: return 'Baik'
-    elif rate < 25: return 'Perlu Perhatian'
-    elif rate < 40: return 'Bermasalah'
+    elif rate < 10: return 'Baik'
+    elif rate < 15: return 'Perlu Perhatian'
+    elif rate < 20: return 'Bermasalah'
     else:           return 'Kritis'
 
 # BUILD MAP
@@ -298,19 +304,19 @@ legend_html = """
     </div>
     <div style="display:flex; align-items:center; margin:5px 0;">
         <span style="background:#a6d96a; width:14px; height:14px; border-radius:50%; display:inline-block; margin-right:8px;"></span>
-        Baik (5% – 15%)
+        Baik (5% – 10%)
     </div>
     <div style="display:flex; align-items:center; margin:5px 0;">
         <span style="background:#ffffbf; width:14px; height:14px; border-radius:50%; display:inline-block; margin-right:8px; border:1px solid #ccc;"></span>
-        Perlu Perhatian (15% – 25%)
+        Perlu Perhatian (10% – 15%)
     </div>
     <div style="display:flex; align-items:center; margin:5px 0;">
         <span style="background:#fdae61; width:14px; height:14px; border-radius:50%; display:inline-block; margin-right:8px;"></span>
-        Bermasalah (25% – 40%)
+        Bermasalah (15% – 20%)
     </div>
     <div style="display:flex; align-items:center; margin:5px 0;">
         <span style="background:#d7191c; width:14px; height:14px; border-radius:50%; display:inline-block; margin-right:8px;"></span>
-        Kritis (&gt; 40%)
+        Kritis (&gt; 20%)
     </div>
     <hr style="margin:8px 0; border-color:#eee;">
     <div style="font-size:11px; color:#7f8c8d;">
@@ -327,7 +333,7 @@ worst_state     = state_df.loc[state_df['delay_rate_pct'].idxmax(), 'customer_st
 worst_delay     = state_df['delay_rate_pct'].max()
 best_state      = state_df.loc[state_df['delay_rate_pct'].idxmin(), 'customer_state']
 best_delay      = state_df['delay_rate_pct'].min()
-critical_states = (state_df['delay_rate_pct'] > 40).sum()
+critical_states = (state_df['delay_rate_pct'] >= 20).sum()
 on_time_rate    = 100 - national_avg_delay
 
 title_html = f"""
@@ -348,7 +354,8 @@ title_html = f"""
         🗺️ Peta Delivery Performance — DustiniaDelixia Groceria
     </div>
     <div style="font-size:12px; color:#7f8c8d; margin-top:4px;">
-        Persona: Operational Analyst &nbsp;|&nbsp; Final Project MCI 2026
+        Persona: Analytics Engineer &nbsp;|&nbsp; dbt + ClickHouse Medallion pipeline
+        &nbsp;|&nbsp; <a href="./dbt/" style="color:#0e7490; font-weight:bold;">dbt docs &amp; lineage</a>
     </div>
     <div style="display:flex; justify-content:center; gap:24px; margin-top:10px; font-size:13px;">
         <div style="text-align:center;">
@@ -361,7 +368,7 @@ title_html = f"""
         </div>
         <div style="text-align:center;">
             <div style="font-size:20px; font-weight:bold; color:#e74c3c;">{critical_states}</div>
-            <div style="color:#7f8c8d;">State Kritis (&gt;40%)</div>
+            <div style="color:#7f8c8d;">State Kritis (&ge;20%)</div>
         </div>
         <div style="text-align:center;">
             <div style="font-size:20px; font-weight:bold; color:#e74c3c;">{worst_state}</div>

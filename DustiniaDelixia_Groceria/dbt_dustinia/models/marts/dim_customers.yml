@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: >
+      Gold customer dimension with delivery location, purchase history,
+      satisfaction, spend, and a frequency segment. One row per customer_id.
+    columns:
+      - name: customer_id
+        description: Primary key used by orders.
+        tests:
+          - unique
+          - not_null
+      - name: customer_unique_id
+        description: Stable customer identity across repeat purchases.
+        tests:
+          - not_null
+      - name: customer_city
+        description: Customer city.
+        tests:
+          - not_null
+      - name: customer_state
+        description: Customer state.
+        tests:
+          - not_null
+      - name: customer_zip_code_prefix
+        description: Customer ZIP prefix.
+        tests:
+          - not_null
+      - name: customer_lat
+        description: Customer latitude from the ZIP-code geolocation lookup.
+      - name: customer_lng
+        description: Customer longitude from the ZIP-code geolocation lookup.
+      - name: total_orders
+        description: Number of delivered orders for this customer_id.
+        tests:
+          - not_null
+      - name: delayed_orders
+        description: Number of delayed delivered orders.
+        tests:
+          - not_null
+      - name: delay_rate_pct
+        description: Delayed orders divided by total orders, in percent.
+        tests:
+          - not_null
+      - name: avg_delivery_days
+        description: Mean delivery lead time in days.
+        tests:
+          - not_null
+      - name: avg_review_score
+        description: Mean review score, 1-5.
+      - name: total_spend
+        description: Sum of price plus freight for delivered orders, in BRL.
+        tests:
+          - not_null
+      - name: first_order_at
+        description: Timestamp of the first delivered order.
+        tests:
+          - not_null
+      - name: last_order_at
+        description: Timestamp of the most recent delivered order.
+        tests:
+          - not_null
+      - name: customer_lifetime_days
+        description: Days between the first and last delivered order.
+        tests:
+          - not_null
+      - name: customer_segment
+        description: >
+          Frequency segment based on delivered orders: high_frequency (>=5),
+          repeat (2-4), or one_time (1).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["high_frequency", "repeat", "one_time"]

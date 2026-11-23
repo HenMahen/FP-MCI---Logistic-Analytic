@@ -1,0 +1,136 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: >
+      Bronze layer. Raw CSV extracts landed by the Airflow ingestion DAG into
+      ClickHouse. Data is intentionally untrusted: type coercion, status
+      filtering, de-duplication, and text normalisation happen in the Silver
+      staging models.
+    schema: "{{ env_var('CLICKHOUSE_RAW_DATABASE', 'default') }}"
+    tables:
+      - name: raw_orders
+        description: One row per order, including non-delivered and cancelled orders.
+        columns:
+          - name: order_id
+            description: Primary key of the order.
+            tests:
+              - not_null
+          - name: customer_id
+            description: Foreign key to raw_customers.
+          - name: order_status
+            description: Raw order status (delivered, shipped, cancelled, ...).
+          - name: order_purchase_timestamp
+            description: Timestamp when the customer placed the order.
+          - name: order_approved_at
+            description: Timestamp when payment was approved.
+          - name: order_delivered_carrier_date
+            description: Timestamp when the order was handed to the carrier.
+          - name: order_delivered_customer_date
+            description: Timestamp when the customer received the order.
+          - name: order_estimated_delivery_date
+            description: Promise date communicated to the customer.
+
+      - name: raw_order_items
+        description: One row per order line item, including price and freight.
+        columns:
+          - name: order_id
+            description: Foreign key to raw_orders.
+          - name: order_item_id
+            description: Sequential line number inside the order.
+          - name: product_id
+            description: Foreign key to raw_products.
+          - name: seller_id
+            description: Foreign key to raw_sellers.
+          - name: shipping_limit_date
+            description: Deadline for the seller to hand the item to the carrier.
+          - name: price
+            description: Item price in BRL.
+          - name: freight_value
+            description: Freight charged for the item in BRL.
+
+      - name: raw_customers
+        description: Customer identity and delivery location.
+        columns:
+          - name: customer_id
+            description: Primary key used by orders (one per order).
+            tests:
+              - not_null
+          - name: customer_unique_id
+            description: Stable customer identifier across multiple orders.
+          - name: customer_zip_code_prefix
+            description: First five digits of the Brazilian ZIP code.
+          - name: customer_city
+            description: Raw customer city.
+          - name: customer_state
+            description: Raw two-letter Brazilian state code.
+
+      - name: raw_sellers
+        description: Seller identity and origin location.
+        columns:
+          - name: seller_id
+            description: Primary key of the seller.
+            tests:
+              - not_null
+          - name: seller_zip_code_prefix
+            description: First five digits of the seller ZIP code.
+          - name: seller_city
+            description: Raw seller city.
+          - name: seller_state
+            description: Raw two-letter Brazilian state code.
+
+      - name: raw_geolocation
+        description: >
+          Raw ZIP-code geolocation points. Multiple points can exist for the same
+          ZIP prefix; Silver aggregates them to one coordinate per prefix.
+        columns:
+          - name: geolocation_zip_code_prefix
+            description: First five digits of the Brazilian ZIP code.
+          - name: geolocation_lat
+            description: Latitude of the geolocation point.
+          - name: geolocation_lng
+            description: Longitude of the geolocation point.
+          - name: geolocation_city
+            description: Raw city name.
+          - name: geolocation_state
+            description: Raw two-letter state code.
+
+      - name: raw_products
+        description: Product catalogue with category and physical dimensions.
+        columns:
+          - name: product_id
+            description: Primary key of the product.
+            tests:
+              - not_null
+          - name: product_category_name
+            description: Raw Portuguese category name (nullable).
+          - name: product_name_lenght
+            description: Legacy source column (typo preserved in Bronze).
+          - name: product_description_lenght
+            description: Legacy source column (typo preserved in Bronze).
+          - name: product_photos_qty
+            description: Number of product photos.
+          - name: product_weight_g
+            description: Product weight in grams.
+          - name: product_length_cm
+            description: Product length in centimetres.
+          - name: product_height_cm
+            description: Product height in centimetres.
+          - name: product_width_cm
+            description: Product width in centimetres.
+
+      - name: raw_order_reviews
+        description: Customer satisfaction survey submitted after delivery.
+        columns:
+          - name: review_id
+            description: Primary key of the review.
+            tests:
+              - not_null
+          - name: order_id
+            description: Foreign key to raw_orders.
+          - name: review_score
+            description: Rating from 1 (worst) to 5 (best); invalid values are dropped in Silver.
+          - name: review_creation_date
+            description: Date the review survey was sent.
+          - name: review_answer_timestamp
+            description: Timestamp the customer answered the survey.

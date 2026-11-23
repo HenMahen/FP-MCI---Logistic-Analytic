@@ -1,0 +1,73 @@
+version: 2
+
+models:
+  - name: dim_sellers
+    description: >
+      Gold seller dimension with delivery volume, SLA performance, revenue, and
+      a volume-aware risk category. One row per seller present in the fact.
+    columns:
+      - name: seller_id
+        description: Primary key of the seller.
+        tests:
+          - unique
+          - not_null
+      - name: seller_city
+        description: Seller city.
+        tests:
+          - not_null
+      - name: seller_state
+        description: Seller state.
+        tests:
+          - not_null
+      - name: seller_zip_code_prefix
+        description: Seller ZIP prefix.
+        tests:
+          - not_null
+      - name: total_orders
+        description: Number of delivered orders fulfilled by the seller.
+        tests:
+          - not_null
+      - name: delayed_orders
+        description: Number of delivered orders that breached the promise date.
+        tests:
+          - not_null
+      - name: delay_rate_pct
+        description: Delayed orders divided by total orders, in percent.
+        tests:
+          - not_null
+      - name: avg_processing_days
+        description: Mean seller processing time in days (approval to carrier).
+        tests:
+          - not_null
+      - name: avg_transit_days
+        description: Mean carrier transit time in days for this seller.
+        tests:
+          - not_null
+      - name: avg_delivery_days
+        description: Mean end-to-end delivery time in days.
+        tests:
+          - not_null
+      - name: avg_review_score
+        description: Mean customer review score, 1-5.
+      - name: total_revenue
+        description: Sum of price plus freight for delivered orders, in BRL.
+        tests:
+          - not_null
+      - name: first_order_at
+        description: Timestamp of the seller's first delivered order.
+        tests:
+          - not_null
+      - name: last_order_at
+        description: Timestamp of the seller's most recent delivered order.
+        tests:
+          - not_null
+      - name: risk_category
+        description: >
+          Volume-aware risk bucket. Sellers with fewer than 10 delivered orders
+          are insufficient_data; otherwise critical (>=30% delay), high
+          (>=20%), medium (>=10%), or low (<10%).
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["insufficient_data", "critical", "high", "medium", "low"]

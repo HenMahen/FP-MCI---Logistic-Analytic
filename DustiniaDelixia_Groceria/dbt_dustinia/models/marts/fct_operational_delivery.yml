@@ -1,0 +1,184 @@
+version: 2
+
+models:
+  - name: fct_operational_delivery
+    description: >
+      Gold fact table for delivery operations. Grain: one row per delivered
+      order. Partitioned by purchase month and sorted by order_id in ClickHouse.
+      It is the source for the executive KPIs, the Streamlit dashboard, and the
+      interactive delivery map.
+    columns:
+      - name: order_id
+        description: Primary key. One row per delivered order.
+        tests:
+          - unique
+          - not_null
+
+      - name: customer_id
+        description: Foreign key to dim_customers.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
+
+      - name: seller_id
+        description: >
+          Foreign key to dim_sellers. The seller of the first line item is used
+          for order-grain reporting; "unknown" is used when no item exists.
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_sellers')
+                field: seller_id
+
+      - name: order_status
+        description: Normalised order status (always delivered).
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["delivered"]
+
+      - name: order_purchase_timestamp
+        description: Timestamp when the order was placed.
+        tests:
+          - not_null
+
+      - name: order_approved_at
+        description: Timestamp when payment was approved.
+        tests:
+          - not_null
+
+      - name: order_delivered_carrier_date
+        description: Timestamp when the order was handed to the carrier.
+        tests:
+          - not_null
+
+      - name: order_delivered_customer_date
+        description: Timestamp when the customer received the order.
+        tests:
+          - not_null
+
+      - name: order_estimated_delivery_date
+        description: Delivery promise communicated at purchase.
+        tests:
+          - not_null
+
+      - name: order_month
+        description: First day of the purchase month, used for trend charts.
+        tests:
+          - not_null
+
+      - name: order_day_of_week
+        description: ClickHouse day-of-week index (1 = Monday, 7 = Sunday).
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7]
+
+      - name: approval_time_days
+        description: >
+          SLA stage 1. Purchase to payment approval, in days. Low values mean a
+          fast payment gateway and checkout confirmation.
+        tests:
+          - not_null
+
+      - name: seller_processing_days
+        description: >
+          SLA stage 2. Payment approval to carrier hand-over, in days. This is
+          the seller-controlled portion of the lead time.
+        tests:
+          - not_null
+
+      - name: carrier_transit_days
+        description: >
+          SLA stage 3. Carrier hand-over to customer delivery, in days. This is
+          the largest share of total lead time and the main bottleneck.
+        tests:
+          - not_null
+
+      - name: actual_delivery_days
+        description: >
+          End-to-end lead time in days from purchase to customer delivery.
+        tests:
+          - not_null
+
+      - name: delay_days
+        description: >
+          Signed difference between actual and estimated delivery, in days.
+          Positive = late, negative = early, zero = exactly on time.
+        tests:
+          - not_null
+
+      - name: is_delayed
+        description: >
+          Binary SLA breach flag. 1 when delay_days > 0, otherwise 0.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+
+      - name: price
+        description: Price of the first line item in BRL.
+        tests:
+          - not_null
+
+      - name: freight_value
+        description: Freight charged for the first line item in BRL.
+        tests:
+          - not_null
+
+      - name: total_order_value
+        description: Price plus freight of the first line item, in BRL.
+        tests:
+          - not_null
+
+      - name: product_id
+        description: Product of the first line item, or "unknown".
+        tests:
+          - not_null
+
+      - name: product_category_name
+        description: Normalised product category, never null.
+        tests:
+          - not_null
+
+      - name: product_weight_g
+        description: Product weight in grams. Zero means not informed.
+        tests:
+          - not_null
+
+      - name: seller_city
+        description: Seller city at time of extraction.
+        tests:
+          - not_null
+
+      - name: seller_state
+        description: Seller state (origin of the shipment).
+        tests:
+          - not_null
+
+      - name: customer_city
+        description: Customer city (delivery destination).
+        tests:
+          - not_null
+
+      - name: customer_state
+        description: Customer state (delivery destination).
+        tests:
+          - not_null
+
+      - name: customer_lat
+        description: Customer latitude from the ZIP-code geolocation lookup.
+      - name: customer_lng
+        description: Customer longitude from the ZIP-code geolocation lookup.
+
+      - name: review_score
+        description: Latest review score for the order, 1 (worst) to 5 (best).
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]

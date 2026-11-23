@@ -1,27 +1,30 @@
-# DustiniaDelixia Groceria — Dockerfile (Custom Airflow Image)
-# Dockerfile ini mem-build custom Airflow image dengan semua Python
-# dependencies yang sudah ter-install, sehingga container tidak perlu
-# menginstall ulang pip packages setiap kali startup (lebih cepat & reliable).
-
+# DustiniaDelixia Groceria — custom Airflow image
+# Airflow runtime and dbt runtime are isolated in two Python environments:
+#   /home/airflow/.local  -> Airflow + ingestion dependencies
+#   /opt/dbt-venv         -> dbt-core + dbt-clickhouse (on PATH)
+# This prevents dbt upgrades from destabilising the Airflow scheduler.
 FROM apache/airflow:2.10.5-python3.11
 
-# Label metadata
 LABEL maintainer="DustiniaDelixia Groceria Team"
-LABEL description="Custom Apache Airflow 2.10.5 image with ClickHouse drivers & data processing libraries"
+LABEL description="Airflow 2.10.5 + ClickHouse drivers + isolated dbt-clickhouse runtime"
 
-# Switch ke root untuk install system dependencies jika diperlukan
 USER root
 
-# Install curl (diperlukan untuk healthcheck Airflow webserver)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Switch kembali ke airflow user untuk install pip packages
-USER airflow
+COPY requirements.txt requirements-dbt.txt /tmp/
 
-# Copy requirements.txt (--chown agar airflow user bisa hapus setelah install)
-COPY --chown=airflow:0 requirements.txt /tmp/requirements.txt
+# Dedicated dbt environment, owned by root but readable/executable by airflow.
+RUN python -m venv /opt/dbt-venv \
+    && /opt/dbt-venv/bin/pip install --no-cache-dir --upgrade pip \
+    && /opt/dbt-venv/bin/pip install --no-cache-dir -r /tmp/requirements-dbt.txt
+
+ENV PATH="/opt/dbt-venv/bin:${PATH}"
+
+# Airflow runtime dependencies.
+USER airflow
 RUN pip install --no-cache-dir -r /tmp/requirements.txt \
-    && rm /tmp/requirements.txt
+    && rm /tmp/requirements.txt /tmp/requirements-dbt.txt

@@ -1,0 +1,59 @@
+version: 2
+
+models:
+  - name: int_order_sla_calculated
+    description: >
+      Order-grain Silver model that joins the first line item, customer,
+      seller, product, geolocation, and latest review, then derives every
+      operational SLA metric in SQL.
+    columns:
+      - name: order_id
+        description: Order grain (unique).
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: Customer key used by dim_customers.
+        tests:
+          - not_null
+      - name: approval_time_days
+        description: >
+          SLA stage 1. Days from purchase to payment approval. Negative
+          source values are clipped to zero.
+        tests:
+          - not_null
+      - name: seller_processing_days
+        description: >
+          SLA stage 2. Days from payment approval to carrier hand-over.
+          Negative source values are clipped to zero.
+        tests:
+          - not_null
+      - name: carrier_transit_days
+        description: >
+          SLA stage 3. Days from carrier hand-over to customer delivery.
+          Negative source values are clipped to zero.
+        tests:
+          - not_null
+      - name: actual_delivery_days
+        description: >
+          End-to-end lead time in days from purchase to customer delivery.
+        tests:
+          - not_null
+      - name: delay_days
+        description: >
+          Signed days between actual and estimated delivery. Positive means
+          late, negative means early, zero means exactly on the promise date.
+        tests:
+          - not_null
+      - name: is_delayed
+        description: Binary late-delivery flag, 1 when delay_days > 0.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: review_score
+        description: Latest valid review score for the order, 1-5.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]

@@ -1,0 +1,10 @@
+[sqlfluff]
+dialect = clickhouse
+templater = jinja
+max_line_length = 120
+exclude_rules = LT01, CP03, AL09, ST06
+# LT01: deliberate column alignment for readability.
+# CP03: ClickHouse functions use camelCase (toDateTime, dateDiff, multiIf).
+# AL09: explicit aliases are required because ClickHouse would otherwise name
+#       a column "m.total_orders" instead of "total_orders".
+# ST06: "select *" inside a source CTE is the standard dbt staging pattern.

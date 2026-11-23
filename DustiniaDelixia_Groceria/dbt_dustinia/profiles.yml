@@ -1,0 +1,39 @@
+# dbt connection profile — no credentials are stored in this file.
+# Every value can be overridden with environment variables.
+#
+# Local default (docker compose exposes ClickHouse HTTP on localhost:8123):
+#   dbt run --profiles-dir .
+#
+# Inside the Airflow container, docker-compose sets CLICKHOUSE_HOST=clickhouse
+# and DBT_PROFILES_DIR=/opt/airflow/dbt_dustinia.
+dustinadelixia_groceria:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: clickhouse
+      driver: http
+      host: "{{ env_var('CLICKHOUSE_HOST', 'localhost') }}"
+      port: "{{ env_var('CLICKHOUSE_PORT', '8123') | int }}"
+      user: "{{ env_var('CLICKHOUSE_USER', 'default') }}"
+      password: "{{ env_var('CLICKHOUSE_PASSWORD', '') }}"
+      schema: "{{ env_var('DBT_SCHEMA', 'default') }}"
+      secure: false
+      connect_timeout: 10
+      send_receive_timeout: 300
+      sync_request_timeout: 30
+      compression: "lz4"
+    prod:
+      type: clickhouse
+      driver: "{{ env_var('CLICKHOUSE_DRIVER', 'http') }}"
+      host: "{{ env_var('CLICKHOUSE_HOST', 'clickhouse') }}"
+      port: "{{ env_var('CLICKHOUSE_PORT', '8123') | int }}"
+      user: "{{ env_var('CLICKHOUSE_USER', 'default') }}"
+      password: "{{ env_var('CLICKHOUSE_PASSWORD', '') }}"
+      schema: "{{ env_var('DBT_SCHEMA', 'default') }}"
+      secure: true
+      verify: true
+      cluster: "{{ env_var('CLICKHOUSE_CLUSTER', '') }}"
+      connect_timeout: 10
+      send_receive_timeout: 600
+      sync_request_timeout: 60
+      compression: "lz4"

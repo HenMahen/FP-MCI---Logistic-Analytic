@@ -1,0 +1,114 @@
+name: Deploy Docs to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "DustiniaDelixia_Groceria/dbt_dustinia/**"
+      - "DustiniaDelixia_Groceria/sql/**"
+      - "DustiniaDelixia_Groceria/delivery_map.html"
+      - "docs/**"
+      - ".github/workflows/deploy_docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build delivery map and dbt docs
+    runs-on: ubuntu-latest
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:24.8
+        ports:
+          - 8123:8123
+        env:
+          CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CLICKHOUSE_HOST: localhost
+      CLICKHOUSE_PORT: "8123"
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      DBT_PROFILES_DIR: ${{ github.workspace }}/DustiniaDelixia_Groceria/dbt_dustinia
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: DustiniaDelixia_Groceria/requirements-dbt.txt
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r DustiniaDelixia_Groceria/requirements-dbt.txt
+
+      - name: Create Bronze tables and load CI fixture
+        run: |
+          python - <<'PY'
+          import pathlib
+          import clickhouse_connect
+
+          client = clickhouse_connect.get_client(host="localhost", port=8123)
+
+          for sql_file in [
+              "DustiniaDelixia_Groceria/sql/create_raw_tables.sql",
+              "DustiniaDelixia_Groceria/dbt_dustinia/scripts/ci_seed.sql",
+          ]:
+              statements = []
+              current = []
+              for line in pathlib.Path(sql_file).read_text().splitlines():
+                  stripped = line.strip()
+                  if stripped.startswith("--"):
+                      continue
+                  current.append(line)
+                  if stripped.endswith(";"):
+                      statements.append("\n".join(current).rstrip().rstrip(";"))
+                      current = []
+              for statement in statements:
+                  client.command(statement)
+              print(f"Applied {len(statements)} statements from {sql_file}")
+          PY
+
+      - name: Build dbt models
+        working-directory: DustiniaDelixia_Groceria/dbt_dustinia
+        run: dbt build --profiles-dir . --target dev --no-version-check
+
+      - name: Generate dbt docs and catalog
+        working-directory: DustiniaDelixia_Groceria/dbt_dustinia
+        run: dbt docs generate --profiles-dir . --target dev --no-version-check
+
+      - name: Assemble GitHub Pages site
+        run: |
+          mkdir -p _site
+          cp -r docs/. _site/
+          mkdir -p _site/dbt
+          cp -r DustiniaDelixia_Groceria/dbt_dustinia/target/. _site/dbt/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

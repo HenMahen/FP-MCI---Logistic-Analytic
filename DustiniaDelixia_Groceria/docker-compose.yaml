@@ -39,9 +39,22 @@ x-airflow-common: &airflow-common
     # FIX 5: Timezone Indonesia
     AIRFLOW__CORE__DEFAULT_TIMEZONE: "Asia/Jakarta"
 
+    # ClickHouse connection shared by the DAG (native 9000) and dbt (HTTP 8123)
+    CLICKHOUSE_HOST: clickhouse
+    CLICKHOUSE_PORT: "8123"
+    CLICKHOUSE_NATIVE_PORT: "9000"
+    CLICKHOUSE_USER: default
+    CLICKHOUSE_PASSWORD: ""
+    CLICKHOUSE_DB: default
+
+    # dbt project mounted below; this is where dbt reads profiles.yml
+    DBT_PROFILES_DIR: /opt/airflow/dbt_dustinia
+    DBT_TARGET: dev
+
   volumes:
     - ./dags:/opt/airflow/dags
     - ./sql:/opt/airflow/sql
+    - ./dbt_dustinia:/opt/airflow/dbt_dustinia
     - ./include/data:/opt/airflow/include/data
     - ./logs:/opt/airflow/logs
     - ./plugins:/opt/airflow/plugins
