@@ -1,9 +1,24 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "framework": null,
-  "buildCommand": null,
-  "outputDirectory": "docs",
   "cleanUrls": true,
-  "trailingSlash": true
+  "trailingSlash": true,
+  "rewrites": [
+    {
+      "source": "/dbt",
+      "destination": "/docs/dbt/index.html"
+    },
+    {
+      "source": "/dbt/:match*",
+      "destination": "/docs/dbt/:match*"
+    },
+    {
+      "source": "/",
+      "destination": "/docs/index.html"
+    },
+    {
+      "source": "/:match*",
+      "destination": "/docs/:match*"
+    }
+  ]
 }
