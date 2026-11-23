@@ -3,10 +3,10 @@
 [![CI](https://github.com/Mahendra-TC24/FP-MCI---Logistic-Analytic/actions/workflows/ci.yml/badge.svg)](https://github.com/Mahendra-TC24/FP-MCI---Logistic-Analytic/actions/workflows/ci.yml)
 [![Deploy Docs](https://github.com/Mahendra-TC24/FP-MCI---Logistic-Analytic/actions/workflows/deploy_docs.yml/badge.svg)](https://github.com/Mahendra-TC24/FP-MCI---Logistic-Analytic/actions/workflows/deploy_docs.yml)
 ![dbt](https://img.shields.io/badge/dbt-clickhouse-FF694B?logo=dbt&logoColor=white)
-![ClickHouse](https://img.shields.io/badge/ClickHouse-24.8%20OLAP-FEEB33?logo=clickhouse&logoColor=black)
-![Airflow](https://img.shields.io/badge/Apache%20Airflow-2.10.5-017CEE?logo=apacheairflow&logoColor=white)
+![ClickHouse](<https://img.shields.io/badge/ClickHouse-24.8%20OLAP-FEEB33?logo=clickhouse&logoColor=black>)
+![Airflow](<https://img.shields.io/badge/Apache%20Airflow-2.10.5-017CEE?logo=apacheairflow&logoColor=white>)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)
-![Vercel](https://img.shields.io/badge/Deploy-Vercel%20%7C%20GitHub%20Pages-000000?logo=vercel&logoColor=white)
+![Vercel](<https://img.shields.io/badge/Deploy-Vercel%20%7C%20GitHub%20Pages-000000?logo=vercel&logoColor=white>)
 
 An end-to-end **Analytics Engineering & Business Intelligence platform** designed to identify and eliminate operational delivery bottlenecks for a Brazilian e-commerce logistics network (100k+ orders).
 
@@ -16,11 +16,9 @@ Built with **Apache Airflow** (orchestration), **ClickHouse** (columnar OLAP war
 
 ## Live Interactive Demos
 
-| Artefak Demo | Deskripsi | Link Akses |
-| :--- | :--- | :--- |
-| **Geospatial Delivery Map** | Peta interaktif 27 negara bagian Brazil, heatmap keterlambatan, dan metrik SLA per rute | [Buka Live Map](https://mahendra-tc24.github.io/FP-MCI---Logistic-Analytic/) |
-| **dbt Docs & Lineage Graph** | Kamus data interaktif, dokumentasi model, schema tests, dan DAG visual lineage | [Buka dbt Documentation](https://mahendra-tc24.github.io/FP-MCI---Logistic-Analytic/dbt/) |
-| **Streamlit Operations App** | Executive scorecard, bottleneck SLA per stage, analisis seller berisiko, dan simulator filter | [Buka Streamlit App](https://share.streamlit.io/) *(Lihat panduan deploy)* |
+|                                    |                                                                                               |                                                                                             |
+| :--------------------------------- | :-------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
+| **Streamlit Operations App** | Executive scorecard, bottleneck SLA per stage, analisis seller berisiko, dan simulator filter | [ Streamlit App](https://fp-mci---logistic-analytic-nbxmsqn2s2em59nwtfwxnn.streamlit.app/)  |
 
 ---
 
@@ -52,13 +50,13 @@ flowchart TD
 
 ## Key Executive Findings & Business Insights
 
-| Metrik Kunci | Nilai Saat Ini | Temuan & Rekomendasi Bisnis |
-| :--- | :--- | :--- |
-| **On-Time Delivery Rate** | **91.89%** | Tingkat ketepatan waktu nasional dapat diterima, namun memiliki variansi regional ekstrem. |
-| **Average Delivery Time** | **12.56 hari** | Rata-rata durasi pemenuhan pesanan dari klik beli hingga sampai ke tangan pelanggan. |
-| **Carrier Transit Bottleneck** | **9.33 hari (74.3%)** | **Akar Masalah Utama:** 74% dari total waktu tunggu terjadi di perjalanan kurir, bukan di pemrosesan seller (2.82 hari) maupun persetujuan pembayaran (0.43 hari). |
-| **Regional Disparity** | **MA (19.6%), AL (23.9%)** | Negara bagian di wilayah Northeast Brazil memiliki rasio keterlambatan hingga **3x lipat** dibandingkan Southeast (SP, SC, PR < 6%). Diperlukan *Regional Fulfillment Center* di Salvador atau Fortaleza. |
-| **Customer Satisfaction Drop** | **4.29 $\to$ 2.57 (skala 5.0)** | Keterlambatan pengiriman menyebabkan skor kepuasan ulasan anjlok **1.72 poin**, dan pesanan terlambat >14 hari jatuh ke skor **1.71 / 5.0**. |
+| Metrik Kunci                         | Nilai Saat Ini                          | Temuan & Rekomendasi Bisnis                                                                                                                                                                                       |
+| :----------------------------------- | :-------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **On-Time Delivery Rate**      | **91.89%**                        | Tingkat ketepatan waktu nasional dapat diterima, namun memiliki variansi regional ekstrem.                                                                                                                        |
+| **Average Delivery Time**      | **12.56 hari**                    | Rata-rata durasi pemenuhan pesanan dari klik beli hingga sampai ke tangan pelanggan.                                                                                                                              |
+| **Carrier Transit Bottleneck** | **9.33 hari (74.3%)**             | **Akar Masalah Utama:** 74% dari total waktu tunggu terjadi di perjalanan kurir, bukan di pemrosesan seller (2.82 hari) maupun persetujuan pembayaran (0.43 hari).                                          |
+| **Regional Disparity**         | **MA (19.6%), AL (23.9%)**        | Negara bagian di wilayah Northeast Brazil memiliki rasio keterlambatan hingga **3x lipat** dibandingkan Southeast (SP, SC, PR < 6%). Diperlukan *Regional Fulfillment Center* di Salvador atau Fortaleza. |
+| **Customer Satisfaction Drop** | **4.29 $\to$ 2.57 (skala 5.0)** | Keterlambatan pengiriman menyebabkan skor kepuasan ulasan anjlok **1.72 poin**, dan pesanan terlambat >14 hari jatuh ke skor **1.71 / 5.0**.                                                          |
 
 ---
 
@@ -101,6 +99,7 @@ flowchart TD
 ## Panduan Menjalankan Proyek Secara Lokal
 
 ### Prasyarat
+
 - **Docker & Docker Compose** (Alokasi minimal 6–8 GB RAM direkomendasikan)
 - **Python 3.10+** (untuk menjalankan script/dashboard lokal)
 - **Git**
@@ -125,11 +124,13 @@ docker compose up -d
 ```
 
 Pastikan semua service berstatus healthy:
+
 ```bash
 docker compose ps
 ```
 
 Layanan yang aktif:
+
 - **Airflow Webserver**: [http://localhost:8080](http://localhost:8080) *(user: `airflow` | pass: `airflow`)*
 - **ClickHouse HTTP**: [http://localhost:8123](http://localhost:8123)
 - **ClickHouse Native TCP**: `localhost:9000`
@@ -143,7 +144,9 @@ Layanan yang aktif:
 2. Cari DAG bernama `operational_analyst_dag`.
 3. Aktifkan toggle DAG dan klik tombol **Trigger DAG**.
 4. Alur eksekusi akan berjalan otomatis:
-   $$\text{start} \longrightarrow \text{create\_raw\_tables} \longrightarrow \text{load\_orders, load\_items, ... (Paralel)} \longrightarrow \text{dbt\_run} \longrightarrow \text{dbt\_test} \longrightarrow \text{end}$$
+   $$
+   \text{start} \longrightarrow \text{create\_raw\_tables} \longrightarrow \text{load\_orders, load\_items, ... (Paralel)} \longrightarrow \text{dbt\_run} \longrightarrow \text{dbt\_test} \longrightarrow \text{end}
+   $$
 5. Setelah task `dbt_run` selesai, layer **Bronze**, **Silver**, dan **Gold** di ClickHouse sudah terisi penuh!
 
 ---
@@ -186,6 +189,7 @@ pip install -r dashboard/requirements.txt
 # Jalankan dashboard web
 streamlit run dashboard/app.py
 ```
+
 Dashboard akan otomatis terbuka di browser Anda pada alamat `http://localhost:8501`.
 
 ---
@@ -199,6 +203,7 @@ Cukup buka file `docs/index.html` langsung di browser Anda (atau jalankan `pytho
 ## Panduan Deployment ke Cloud Publik
 
 ### Opsi A: Deploy Portal Statis (Peta + dbt Docs) ke Vercel
+
 Repositori ini sudah dilengkapi file konfigurasi `vercel.json` yang siap pakai:
 
 1. Buat akun gratis di [Vercel](https://vercel.com/) dan hubungkan dengan GitHub Anda.
@@ -206,24 +211,26 @@ Repositori ini sudah dilengkapi file konfigurasi `vercel.json` yang siap pakai:
 3. Pilih repository `FP-MCI---Logistic-Analytic`.
 4. Vercel akan otomatis mendeteksi `vercel.json` dengan folder output `docs`.
 5. Klik **Deploy**.
-6. Web Anda langsung aktif dengan alamat: `https://<nama-project>.vercel.app/`  
+6. Web Anda langsung aktif dengan alamat: `https://<nama-project>.vercel.app/`
    - Halaman utama (`/`): Peta interaktif performa pengiriman Brazil.
    - Halaman dbt docs (`/dbt/`): Dokumentasi lengkap & interactive data lineage graph.
 
 ---
 
 ### Opsi B: Deploy Portal Statis ke GitHub Pages
+
 File workflow `.github/workflows/deploy_docs.yml` sudah disiapkan untuk deployment otomatis:
 
 1. Buka repository Anda di GitHub.
 2. Masuk ke tab **Settings** $\to$ **Pages** (di sidebar kiri).
 3. Pada bagian **Build and deployment** $\to$ **Source**, pilih **"GitHub Actions"**.
-4. Lakukan `git push` ke branch `main`. Workflow akan otomatis menjalankan build dbt, menggabungkan katalog, dan mempublikasikannya ke:  
+4. Lakukan `git push` ke branch `main`. Workflow akan otomatis menjalankan build dbt, menggabungkan katalog, dan mempublikasikannya ke:
    `https://<username>.github.io/<repo>/`
 
 ---
 
 ### Opsi C: Deploy Dashboard ke Streamlit Community Cloud
+
 1. Buka [share.streamlit.io](https://share.streamlit.io/) dan login dengan GitHub.
 2. Klik tombol **New app**.
 3. Isi konfigurasi:
@@ -247,8 +254,8 @@ File workflow `.github/workflows/deploy_docs.yml` sudah disiapkan untuk deployme
 
 ## Author
 
-**Mahendra Agung Darmawan**  
-*Final Project — Manajemen Cerdas Informasi (MCI)*  
-- Email: [amahendra952@gmail.com](mailto:amahendra952@gmail.com)  
-- GitHub: [@Mahendra-TC24](https://github.com/Mahendra-TC24)  
+**Mahendra Agung Darmawan***Final Project — Manajemen Cerdas Informasi (MCI)*
+
+- Email: [amahendra952@gmail.com](mailto:amahendra952@gmail.com)
+- GitHub: [@Mahendra-TC24](https://github.com/Mahendra-TC24)
 - Repository: [FP-MCI---Logistic-Analytic](https://github.com/Mahendra-TC24/FP-MCI---Logistic-Analytic)
