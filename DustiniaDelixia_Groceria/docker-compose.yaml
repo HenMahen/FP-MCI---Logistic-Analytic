@@ -168,7 +168,7 @@ services:
           --conn-password "" \
           --conn-schema default || true
 
-        echo "✅ Airflow init selesai."
+        echo "[OK] Airflow init selesai."
     depends_on:
       <<: *airflow-common-depends-on
       clickhouse:

@@ -44,7 +44,7 @@ if DATA_MODE == 'clickhouse':
         from clickhouse_driver import Client
         clickhouse_available = True
     except ImportError:
-        print("⚠️ clickhouse_driver tidak ditemukan. Beralih ke mode CSV.")
+        print("[WARN] clickhouse_driver tidak ditemukan. Beralih ke mode CSV.")
         DATA_MODE = 'csv'
 
 if DATA_MODE == 'clickhouse' and clickhouse_available:
@@ -68,10 +68,10 @@ if DATA_MODE == 'clickhouse' and clickhouse_available:
             ORDER BY delay_rate_pct DESC
         """, with_column_types=True)
         state_df = pd.DataFrame(rows, columns=[c[0] for c in cols])
-        print(f"✅ Loaded dari ClickHouse: {len(state_df)} states")
+        print(f"Loaded dari ClickHouse: {len(state_df)} states")
     except Exception as e:
-        print(f"❌ ClickHouse connection failed: {str(e)}")
-        print("⚠️  Beralih ke mode CSV...\n")
+        print(f"ClickHouse connection failed: {str(e)}")
+        print("Beralih ke mode CSV...\n")
         DATA_MODE = 'csv'
 
 else:
@@ -135,7 +135,7 @@ else:
         .reset_index()
         .dropna(subset=['lat','lng'])
     )
-    print(f"✅ Loaded dari CSV: {len(state_df)} states")
+    print(f"[OK] Loaded dari CSV: {len(state_df)} states")
 
 # Agregasi per kota untuk heatmap detail
 if DATA_MODE == 'csv':
@@ -162,11 +162,11 @@ else:
         """, with_column_types=True)
         city_df = pd.DataFrame(rows2, columns=[c[0] for c in cols2])
     except Exception as e:
-        print(f"❌ City-level query failed: {str(e)}")
-        print("⚠️  Menggunakan data tier-state saja...\n")
+        print(f"City-level query failed: {str(e)}")
+        print("Menggunakan data tier-state saja...\n")
         city_df = pd.DataFrame()  # Empty dataframe
 
-print(f"✅ City-level data: {len(city_df):,} titik koordinat")
+print(f"City-level data: {len(city_df):,} titik koordinat")
 
 # HELPER: Warna berdasarkan delay rate
 def delay_color(rate):
@@ -200,7 +200,7 @@ heat_data = [
     if not (np.isnan(row['lat']) or np.isnan(row['lng']))
 ]
 
-heatmap_layer = folium.FeatureGroup(name='🌡️ Heatmap Delay Rate', show=True)
+heatmap_layer = folium.FeatureGroup(name='Heatmap Delay Rate', show=True)
 HeatMap(
     heat_data,
     min_opacity=0.3,
@@ -219,7 +219,7 @@ HeatMap(
 heatmap_layer.add_to(m)
 
 # --- LAYER 2: Circle Marker per State ---
-state_layer = folium.FeatureGroup(name='📍 Marker per State', show=True)
+state_layer = folium.FeatureGroup(name='Marker per State', show=True)
 
 if DATA_MODE == 'csv':
     national_avg_delay = df['is_delayed'].mean() * 100
@@ -241,7 +241,7 @@ for _, row in state_df.iterrows():
     popup_html = f"""
     <div style="font-family:Arial,sans-serif; min-width:220px;">
         <h4 style="margin:0 0 8px 0; color:#2c3e50; border-bottom:2px solid {color}; padding-bottom:4px;">
-            📍 State: <b>{row['customer_state']}</b>
+            State: <b>{row['customer_state']}</b>
         </h4>
         <table style="width:100%; font-size:13px; border-collapse:collapse;">
             <tr><td style="padding:3px 0;">Status</td>
@@ -253,7 +253,7 @@ for _, row in state_df.iterrows():
             <tr style="background:#f8f9fa;"><td style="padding:3px 0;">Avg Carrier Transit</td>
                 <td style="text-align:right;"><b>{row['avg_carrier_days']} hari</b></td></tr>
             <tr><td style="padding:3px 0;">Avg Review Score</td>
-                <td style="text-align:right;"><b>⭐ {row['avg_review_score']}</b></td></tr>
+                <td style="text-align:right;"><b>{row['avg_review_score']} / 5.0</b></td></tr>
             <tr style="background:#f8f9fa;"><td style="padding:3px 0;">Total Pesanan</td>
                 <td style="text-align:right;"><b>{int(row['total_orders']):,}</b></td></tr>
         </table>
@@ -296,7 +296,7 @@ legend_html = """
     font-size: 13px;
     min-width: 200px;
 ">
-    <b style="font-size:14px;">📊 Delay Rate</b>
+    <b style="font-size:14px;">Delay Rate</b>
     <hr style="margin:8px 0; border-color:#eee;">
     <div style="display:flex; align-items:center; margin:5px 0;">
         <span style="background:#1a9641; width:14px; height:14px; border-radius:50%; display:inline-block; margin-right:8px;"></span>
@@ -351,7 +351,7 @@ title_html = f"""
     min-width: 560px;
 ">
     <div style="font-size:17px; font-weight:bold; color:#2c3e50;">
-        🗺️ Peta Delivery Performance — DustiniaDelixia Groceria
+        Peta Delivery Performance — DustiniaDelixia Groceria
     </div>
     <div style="font-size:12px; color:#7f8c8d; margin-top:4px;">
         Persona: Analytics Engineer &nbsp;|&nbsp; dbt + ClickHouse Medallion pipeline
@@ -385,13 +385,13 @@ m.get_root().html.add_child(folium.Element(title_html))
 
 # SAVE
 m.save(OUTPUT)
-print(f"\n✅ Peta berhasil dibuat: {OUTPUT}")
+print(f"\n[OK] Peta berhasil dibuat: {OUTPUT}")
 print(f"   Total states    : {len(state_df)}")
 print(f"   Total titik peta: {len(city_df):,}")
 print(f"   On-Time Rate    : {on_time_rate:.2f}%")
 print(f"   Avg Delay Rate  : {national_avg_delay:.2f}%")
 print(f"   State Terburuk  : {worst_state} ({worst_delay:.1f}%)")
 print(f"   State Terbaik   : {best_state} ({best_delay:.1f}%)")
-print(f"\n📂 Buka file ini di browser:")
+print(f"\nBuka file ini di browser:")
 print(f"   {os.path.abspath(OUTPUT)}")
 

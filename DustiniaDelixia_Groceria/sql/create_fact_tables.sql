@@ -469,10 +469,10 @@ SELECT
     round(avg(carrier_transit_days), 2)                 AS avg_transit_days,
     round(avg(review_score), 2)                         AS avg_review_score,
     CASE
-        WHEN countIf(is_delayed=1)/count()*100 >= 30 THEN '🚨 Kritis'
-        WHEN countIf(is_delayed=1)/count()*100 >= 20 THEN '🔴 Tinggi'
-        WHEN countIf(is_delayed=1)/count()*100 >= 10 THEN '🟠 Sedang'
-        ELSE                                              '🟢 Baik'
+        WHEN countIf(is_delayed=1)/count()*100 >= 30 THEN 'Kritis'
+        WHEN countIf(is_delayed=1)/count()*100 >= 20 THEN 'Tinggi'
+        WHEN countIf(is_delayed=1)/count()*100 >= 10 THEN 'Sedang'
+        ELSE                                              'Baik'
     END AS risk_level
 FROM fact_operational_delivery
 GROUP BY seller_id, seller_city, seller_state

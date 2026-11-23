@@ -27,7 +27,6 @@ import streamlit as st
 # ---------------------------------------------------------------------------
 st.set_page_config(
     page_title="DustiniaDelixia | Delivery Operations",
-    page_icon="🚚",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -773,7 +772,7 @@ with seller_tab:
                 "Delay %": st.column_config.ProgressColumn(
                     "Delay %", min_value=0, max_value=50, format="%.1f%%"
                 ),
-                "Review": st.column_config.NumberColumn("Review", format="%.2f ⭐"),
+                "Review": st.column_config.NumberColumn("Review", format="%.2f / 5.0"),
             },
         )
 
